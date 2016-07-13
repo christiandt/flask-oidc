@@ -586,8 +586,12 @@ class OpenIDConnect(object):
 
         .. versionadded:: 1.0
         """
+        if 'end_session_uri' not in self.client_secrets:
+            logger.debug('Userinfo uri not specified')
+            raise AssertionError('UserInfo URI not specified')
         # TODO: Add single logout
         self._set_cookie_id_token(None)
+        return redirect(self.client_secrets['end_session_uri'] + "?redirect_uri=" + request.url)
 
     # Below here is for resource servers to validate tokens
     def accept_token(self, require_token=False, scopes_required=None):
