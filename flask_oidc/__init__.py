@@ -425,7 +425,6 @@ class OpenIDConnect(object):
             'destination': destination,
         }
         extra_params = {
-            'state': json.dumps(state),
             'state': b64encode(json.dumps(state)),
         }
         if current_app.config['OIDC_GOOGLE_APPS_DOMAIN']:
@@ -521,7 +520,7 @@ class OpenIDConnect(object):
         try:
             session_csrf_token = session.pop('oidc_csrf_token')
 
-            state = json.loads(request.args['state'])
+            state = json.loads(b64decode(request.args['state']))
             csrf_token = state['csrf_token']
             destination = state['destination']
 
@@ -530,7 +529,6 @@ class OpenIDConnect(object):
             logger.debug("Can't retrieve CSRF token, state, or code",
                          exc_info=True)
             return self._oidc_error()
-        state = json.loads(b64decode(request.args['state']))
 
         # check callback CSRF token passed to IdP
         # against session CSRF token held by user
