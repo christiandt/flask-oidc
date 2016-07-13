@@ -27,6 +27,7 @@ from functools import wraps
 import os
 import json
 from base64 import b64encode
+from base64 import b64encode, b64decode
 import time
 from copy import copy
 import logging
@@ -425,6 +426,7 @@ class OpenIDConnect(object):
         }
         extra_params = {
             'state': json.dumps(state),
+            'state': b64encode(json.dumps(state)),
         }
         if current_app.config['OIDC_GOOGLE_APPS_DOMAIN']:
             extra_params['hd'] = current_app.config['OIDC_GOOGLE_APPS_DOMAIN']
@@ -528,6 +530,7 @@ class OpenIDConnect(object):
             logger.debug("Can't retrieve CSRF token, state, or code",
                          exc_info=True)
             return self._oidc_error()
+        state = json.loads(b64decode(request.args['state']))
 
         # check callback CSRF token passed to IdP
         # against session CSRF token held by user
