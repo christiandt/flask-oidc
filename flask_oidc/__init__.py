@@ -587,7 +587,8 @@ class OpenIDConnect(object):
         """
         if 'end_session_uri' not in self.client_secrets:
             logger.debug('Userinfo uri not specified')
-            raise AssertionError('UserInfo URI not specified')
+            raise AssertionError('EndSession URI not specified')
+            
         # TODO: Add single logout
         self._set_cookie_id_token(None)
         return redirect(self.client_secrets['end_session_uri'] + "?redirect_uri=" + request.url)
