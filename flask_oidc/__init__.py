@@ -430,7 +430,7 @@ class OpenIDConnect(object):
             'destination': destination,
         }
         extra_params = {
-            'state': b64encode(json.dumps(state)),
+            'state': b64encode(bytes(json.dumps(state), 'utf-8')),
         }
         if current_app.config['OIDC_GOOGLE_APPS_DOMAIN']:
             extra_params['hd'] = current_app.config['OIDC_GOOGLE_APPS_DOMAIN']
@@ -525,7 +525,7 @@ class OpenIDConnect(object):
         try:
             session_csrf_token = session.pop('oidc_csrf_token')
 
-            state = json.loads(b64decode(request.args['state']))
+            state = json.loads(str(b64decode(request.args['state']), 'utf-8'))
             csrf_token = state['csrf_token']
             destination = state['destination']
 
