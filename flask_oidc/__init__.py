@@ -37,7 +37,8 @@ from six.moves.urllib.parse import urlencode
 from flask import request, session, redirect, url_for, g, current_app
 from oauth2client.client import flow_from_clientsecrets, OAuth2WebServerFlow,\
     AccessTokenRefreshError, OAuth2Credentials
-import requests
+import httplib2
+import certifi
 from itsdangerous import JSONWebSignatureSerializer, BadSignature, \
     TimedJSONWebSignatureSerializer, SignatureExpired
 
@@ -210,7 +211,7 @@ class OpenIDConnect(object):
         if '_oidc_userinfo' in g:
             return g._oidc_userinfo
 
-        http = requests
+        http = httplib2.Http(ca_certs=certifi.where())
         if access_token is None:
             try:
                 credentials = OAuth2Credentials.from_json(
@@ -223,8 +224,8 @@ class OpenIDConnect(object):
             resp, content = http.request(self.client_secrets['userinfo_uri'])
         else:
             # We have been manually overriden with an access token
-            resp, content = request.post(self.client_secrets['userinfo_uri'],
-                                         urlencode({"access_token":
+            resp, content = http.request(self.client_secrets['userinfo_uri'],
+                                         "POST", urlencode({"access_token":
                                                             access_token}))
 
         logger.debug('Retrieved user info: %s' % content)
@@ -339,7 +340,7 @@ class OpenIDConnect(object):
 
             # refresh and store credentials
             try:
-                credentials.refresh(requests)
+                credentials.refresh(httplib2.Http(ca_certs=certifi.where()))
                 if credentials.id_token:
                     id_token = credentials.id_token
                 else:
@@ -703,8 +704,8 @@ class OpenIDConnect(object):
                    'client_secret': self.client_secrets['client_secret']}
         headers = {'Content-type': 'application/x-www-form-urlencoded'}
 
-        resp, content = requests.post(
-            self.client_secrets['token_introspection_uri'],
+        resp, content = httplib2.Http(ca_certs=certifi.where()).request(
+            self.client_secrets['token_introspection_uri'], 'POST',
             urlencode(request), headers=headers)
         # TODO: Cache this reply
         return json.loads(content)
